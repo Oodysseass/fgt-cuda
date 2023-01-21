@@ -9,9 +9,9 @@ int main(int argc, char* argv[])
     {
         std::cout << "Usage: ./main <filename>" << std::endl;
         return 1;
-    }    
+    }
 
-    CSRAdjacentMatrix adjacent = readMTX(argv[2]);
+    CSRAdjacentMatrix adjacent = readMTX(argv[1]);
 
     std::cout << "#Rows/Columns: " << adjacent.size << std::endl;
     std::cout << "#Non-zeros: " << adjacent.nz << std::endl;

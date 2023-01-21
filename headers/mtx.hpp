@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <string.h>
+#include <limits>
 
 /**
  * Struct denoting the adjacent matrix of a graph in CSR format

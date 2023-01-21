@@ -38,19 +38,19 @@ CSRAdjacentMatrix readMTX(std::string filename)
         std::cerr << "Currently works only with 'matrix' option, aborting..." << std::endl;
         exit(1);
     }
-
     if (strcmp(b2, "coordinate"))
     {
         std::cerr << "Currently works only with 'coordinate' option, aborting..." << std::endl;
         exit(1);
     }
-
     if (strcmp(b3, "pattern"))
     {
         std::cerr << "Currently works only with 'pattern' format, aborting..." << std::endl;
         exit(1);
     }
 
+    // skip comment
+    fin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     while (fin.peek() == '%')
         fin.ignore(2048, '\n');
 
