@@ -1,8 +1,2 @@
-/*
-!*.cpp
-!*.hpp
-!*.h
-!*.cu
-!*.sh
-!Makefile
-!.gitignore
+/mtxfiles/*
+/README.md
