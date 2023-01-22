@@ -21,8 +21,9 @@ struct CSRMatrix
     /**
      * CSRMatrix constructor
      * 
-     * @param size  # of rows of the matrix 
-     * @param nz    # of non-zero elements of the matrix 
+     * @param rows      # of rows of the matrix
+     * @param columns   # of columns of the matrix
+     * @param nz        # of non-zero elements of the matrix
      */
     CSRMatrix(int rows, int columns, int nz);
 };
@@ -42,8 +43,9 @@ struct CSCMatrix
     /**
      * CSCMatrix constructor
      * 
-     * @param size  # of columns of the matrix 
-     * @param nz    # of non-zero elements of the matrix 
+     * @param columns   # of columns of the matrix
+     * @param rows      # of rows of the matrix
+     * @param nz        # of non-zero elements of the matrix
      */
     CSCMatrix(int columns, int rows, int nz);
 };
@@ -51,17 +53,17 @@ struct CSCMatrix
 /**
  * Constructs adjacent matrix in CSR format from .mtx file
  * 
+ * @param csrAdj pointer to CSRMatrix struct to save the matrix
  * @param filename filename of the .mtx file to read
- * @return a struct representing the adjacent matrix in CSR
  */
-CSRMatrix readMTX(std::string filename);
+void readMTX(CSRMatrix *csrAdj, std::string filename);
 
 /**
  * Converts from CSC to CSR
  * 
  * @param A CSC struct to covert to CSR
- * @return the converted matrix in CSR
+ * @param B CSR struct pointer, where conversion will be saved
  */
-CSRMatrix convert(CSCMatrix A);
+void convert(CSCMatrix A, CSRMatrix *B);
 
 #endif

@@ -20,7 +20,7 @@ CSCMatrix::CSCMatrix(int columns, int rows, int nz)
     nzValues = new int[nz];
 }
 
-CSRMatrix readMTX(std::string filename)
+void readMTX(CSRMatrix *csrAdj, std::string filename)
 {
     // open the file
     std::ifstream fin(filename);
@@ -75,51 +75,47 @@ CSRMatrix readMTX(std::string filename)
         cscAdj.colIndex[i + 1] += cscAdj.colIndex[i];
 
     // conver to csr
-    CSRMatrix csrAdj = convert(cscAdj);
-
-    return csrAdj;
+    convert(cscAdj, csrAdj);
 }
 
-CSRMatrix convert(CSCMatrix A)
+void convert(CSCMatrix A, CSRMatrix *B)
 {
     int dest, temp, last = 0, cumsum = 0;
-    CSRMatrix B = CSRMatrix(A.rows, A.columns, A.nz);
+    B = new CSRMatrix(A.rows, A.columns, A.nz);
 
     for (int i = 0; i < A.rows + 1; i++)
-        B.rowIndex[i] = 0;
+        B->rowIndex[i] = 0;
 
     for (int i = 0; i < A.nz; i++)
     {
-        B.rowIndex[A.nzIndex[i]]++;
-        B.nzValues[i] = 1;
+        B->rowIndex[A.nzIndex[i]]++;
+        B->nzValues[i] = 1;
     }
 
     for (int i = 0; i < A.rows; i++)
     {
-        temp = B.rowIndex[i];
-        B.rowIndex[i] = cumsum;
+        temp = B->rowIndex[i];
+        B->rowIndex[i] = cumsum;
         cumsum += temp;
     }
-    B.rowIndex[A.rows] = A.nz;
+    B->rowIndex[A.rows] = A.nz;
 
     for (int i = 0; i < A.rows; i++)
     {
         for (int j = A.colIndex[i]; j < A.colIndex[i + 1]; j++)
         {
             temp = A.nzIndex[j];
-            dest = B.rowIndex[temp];
+            dest = B->rowIndex[temp];
 
-            B.nzIndex[dest] = i;
-            B.rowIndex[temp]++;
+            B->nzIndex[dest] = i;
+            B->rowIndex[temp]++;
         }
     }
 
     for (int i = 0; i < A.rows + 1; i++)
     {
-        temp = B.rowIndex[i];
-        B.rowIndex[i] = last;
+        temp = B->rowIndex[i];
+        B->rowIndex[i] = last;
         last = temp;
     }
-
-    return B;
 }
