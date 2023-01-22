@@ -1,22 +1,26 @@
 #include "../headers/mtx.hpp"
 
-CSRAdjacentMatrix::CSRAdjacentMatrix(int size, int nz)
+CSRMatrix::CSRMatrix(int rows, int columns, int nz)
 {
-    this->size = size;
+    this->rows = rows;
+    this->columns = columns;
     this->nz = nz;
-    rowIndex = new int[size + 1];
+    rowIndex = new int[rows + 1];
     nzIndex = new int[nz];
+    nzValues = new int[nz];
 }
 
-CSCAdjacentMatrix::CSCAdjacentMatrix(int size, int nz)
+CSCMatrix::CSCMatrix(int columns, int rows, int nz)
 {
-    this->size = size;
+    this->columns = columns;
+    this->rows = rows;
     this->nz = nz;
-    colIndex = new int[size + 1];
+    colIndex = new int[columns + 1];
     nzIndex = new int[nz];
+    nzValues = new int[nz];
 }
 
-CSRAdjacentMatrix readMTX(std::string filename)
+CSRMatrix readMTX(std::string filename)
 {
     // open the file
     std::ifstream fin(filename);
@@ -58,43 +62,47 @@ CSRAdjacentMatrix readMTX(std::string filename)
     fin >> temp >> numCols >> numNZ;
 
     // convert coo to csc while reading
-    CSCAdjacentMatrix cscAdj = CSCAdjacentMatrix(numCols, numNZ);
+    CSCMatrix cscAdj = CSCMatrix(numCols, temp, numNZ);
     for (int i = 0; i < numNZ; i++)
     {
         fin >> cscAdj.nzIndex[i] >> temp;
-        cscAdj.nzIndex[i]--;
         cscAdj.colIndex[temp]++;
+        cscAdj.nzIndex[i]--;
+        cscAdj.nzValues[i] = 1;
     }
 
     for (int i = 0; i < numCols; i++)
         cscAdj.colIndex[i + 1] += cscAdj.colIndex[i];
 
     // conver to csr
-    CSRAdjacentMatrix csrAdj = convert(cscAdj);
+    CSRMatrix csrAdj = convert(cscAdj);
 
     return csrAdj;
 }
 
-CSRAdjacentMatrix convert(CSCAdjacentMatrix A)
+CSRMatrix convert(CSCMatrix A)
 {
     int dest, temp, last = 0, cumsum = 0;
-    CSRAdjacentMatrix B = CSRAdjacentMatrix(A.size, A.nz);
+    CSRMatrix B = CSRMatrix(A.rows, A.columns, A.nz);
 
-    for (int i = 0; i < A.size + 1; i++)
+    for (int i = 0; i < A.rows + 1; i++)
         B.rowIndex[i] = 0;
 
     for (int i = 0; i < A.nz; i++)
+    {
         B.rowIndex[A.nzIndex[i]]++;
+        B.nzValues[i] = 1;
+    }
 
-    for (int i = 0; i < A.size; i++)
+    for (int i = 0; i < A.rows; i++)
     {
         temp = B.rowIndex[i];
         B.rowIndex[i] = cumsum;
         cumsum += temp;
     }
-    B.rowIndex[A.size] = A.nz;
+    B.rowIndex[A.rows] = A.nz;
 
-    for (int i = 0; i < A.size; i++)
+    for (int i = 0; i < A.rows; i++)
     {
         for (int j = A.colIndex[i]; j < A.colIndex[i + 1]; j++)
         {
@@ -106,7 +114,7 @@ CSRAdjacentMatrix convert(CSCAdjacentMatrix A)
         }
     }
 
-    for (int i = 0; i < A.size + 1; i++)
+    for (int i = 0; i < A.rows + 1; i++)
     {
         temp = B.rowIndex[i];
         B.rowIndex[i] = last;
