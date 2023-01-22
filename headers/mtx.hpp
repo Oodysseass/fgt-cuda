@@ -56,7 +56,7 @@ struct CSCMatrix
  * @param csrAdj pointer to CSRMatrix struct to save the matrix
  * @param filename filename of the .mtx file to read
  */
-void readMTX(CSRMatrix *csrAdj, std::string filename);
+CSCMatrix readMTX(std::string filename);
 
 /**
  * Converts from CSC to CSR

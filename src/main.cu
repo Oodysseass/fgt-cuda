@@ -6,7 +6,7 @@ __global__ void sparseMatrixMult(CSRMatrix *A, CSCMatrix *B, CSRMatrix *C);
 
 __global__ void hadamardProduct(int *A, int *B);
 
-__host__ void makeUnit(CSCMatrix *A, int rows);
+__host__ void makeUnit(CSCMatrix *A);
 
 int main(int argc, char* argv[])
 {
@@ -23,22 +23,24 @@ int main(int argc, char* argv[])
     CSCMatrix *devUnitVector;
     int blocksPerGrid, threadsPerBlock = 256;
 
-    cudaMallocHost(&adjacent, sizeof(CSRMatrix));
     cudaMallocHost(&p1, sizeof(CSRMatrix));
-    cudaMallocHost(&unitVector, sizeof(CSCMatrix));
     cudaMalloc(&devAdjacent, sizeof(CSRMatrix));
     cudaMalloc(&devp1, sizeof(CSRMatrix));
     cudaMalloc(&devUnitVector, sizeof(CSCMatrix));
 
     // get adjacent matrix and copy to GPU
-    readMTX(adjacent, argv[1]);
+    CSCMatrix tempAdjacent = readMTX(argv[1]);
+    adjacent = new CSRMatrix(tempAdjacent.rows, tempAdjacent.columns, tempAdjacent.nz);
+    convert(tempAdjacent, adjacent);
     cudaMemcpy(devAdjacent, adjacent, sizeof(CSRMatrix), cudaMemcpyHostToDevice);
 
     // ~~~~~~~ calculate p1
-    makeUnit(unitVector, adjacent->columns);
+    unitVector = new CSCMatrix(1, adjacent->columns, adjacent->columns);
+    makeUnit(unitVector);
     cudaMemcpy(devUnitVector, unitVector, sizeof(CSCMatrix), cudaMemcpyHostToDevice);
     blocksPerGrid = (adjacent->rows + threadsPerBlock - 1) / threadsPerBlock;
     sparseMatrixMult<<<blocksPerGrid, threadsPerBlock>>>(devAdjacent, devUnitVector, devp1);
+    cudaMemcpy(p1, devp1, sizeof(CSCMatrix), cudaMemcpyDeviceToHost);
 
     std::cout << "#Rows/Columns: " << adjacent->rows << std::endl;
     std::cout << "#Non-zeros: " << adjacent->nz << std::endl;
@@ -53,16 +55,28 @@ __global__ void sparseMatrixMult(CSRMatrix *A, CSCMatrix *B, CSRMatrix *C)
 
     if (row < A->rows && col < B->columns)
     {
-
+        int sum = 0;
+        for (int i = A->rowIndex[row]; i < A->rowIndex[row + 1]; i++)
+        {
+            int k = A->nzIndex[i];
+            for (int j = B->colIndex[col]; j < B->colIndex[col + 1]; j++)
+                if (B->nzIndex[j] == k)
+                    sum += A->nzValues[i] * B->nzValues[j];
+        }
+        if (sum != 0)
+        {
+            atomicAdd(&C->rowIndex[row + 1], 1);
+            int idx = atomicAdd(&C->rowIndex[A->rows], 1);
+            C->nzIndex[idx] = col;
+            C->nzValues[idx] = sum;
+        }
     }
 
-    printf("Row: %d, Col: %d\n", row, col);
-
+    printf("mpainw\n");
 }
 
-__host__ void makeUnit(CSCMatrix *A, int rows)
+__host__ void makeUnit(CSCMatrix *A)
 {
-    A = new CSCMatrix(1, rows, rows);
     A->colIndex[0] = 0;
     A->colIndex[1] = A->nz;
 
