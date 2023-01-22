@@ -81,7 +81,12 @@ void readMTX(CSRMatrix *csrAdj, std::string filename)
 void convert(CSCMatrix A, CSRMatrix *B)
 {
     int dest, temp, last = 0, cumsum = 0;
-    B = new CSRMatrix(A.rows, A.columns, A.nz);
+    B->rows = A.rows;
+    B->columns = A.columns;
+    B->nz = A.nz;
+    B->rowIndex = new int[B->rows];
+    B->nzIndex = new int[B->nz];
+    B->nzValues = new int[B->nz];
 
     for (int i = 0; i < A.rows + 1; i++)
         B->rowIndex[i] = 0;
