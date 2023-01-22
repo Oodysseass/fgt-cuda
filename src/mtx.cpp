@@ -20,7 +20,7 @@ CSCMatrix::CSCMatrix(int columns, int rows, int nz)
     nzValues = new int[nz];
 }
 
-void readMTX(CSRMatrix *csrAdj, std::string filename)
+CSCMatrix readMTX(std::string filename)
 {
     // open the file
     std::ifstream fin(filename);
@@ -74,19 +74,12 @@ void readMTX(CSRMatrix *csrAdj, std::string filename)
     for (int i = 0; i < numCols; i++)
         cscAdj.colIndex[i + 1] += cscAdj.colIndex[i];
 
-    // conver to csr
-    convert(cscAdj, csrAdj);
+    return cscAdj;
 }
 
 void convert(CSCMatrix A, CSRMatrix *B)
 {
     int dest, temp, last = 0, cumsum = 0;
-    B->rows = A.rows;
-    B->columns = A.columns;
-    B->nz = A.nz;
-    B->rowIndex = new int[B->rows];
-    B->nzIndex = new int[B->nz];
-    B->nzValues = new int[B->nz];
 
     for (int i = 0; i < A.rows + 1; i++)
         B->rowIndex[i] = 0;
