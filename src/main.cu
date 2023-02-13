@@ -2,9 +2,10 @@
 #include <cuda_runtime.h>
 #include "../headers/mtx.hpp"
 
-__global__ void sparseMatrixMult(CSRMatrix *A, CSCMatrix *B, CSRMatrix *C);
+template<typename MatrixType>
+__host__ void copyToDev(MatrixType *A, MatrixType *devA);
 
-__global__ void hadamardProduct(int *A, int *B);
+__global__ void sparseMatrixMult(CSRMatrix *A, CSCMatrix *B, CSRMatrix *C);
 
 __host__ void makeUnit(CSCMatrix *A);
 
@@ -16,36 +17,56 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // variable declaration and memory allocation
+    // ~~~~~~~ variable declaration and memory allocation
     CSRMatrix *adjacent, *p1;
     CSRMatrix *devAdjacent, *devp1;
     CSCMatrix *unitVector;
     CSCMatrix *devUnitVector;
     int blocksPerGrid, threadsPerBlock = 256;
 
-    cudaMallocHost(&p1, sizeof(CSRMatrix));
-    cudaMalloc(&devAdjacent, sizeof(CSRMatrix));
-    cudaMalloc(&devp1, sizeof(CSRMatrix));
-    cudaMalloc(&devUnitVector, sizeof(CSCMatrix));
-
     // get adjacent matrix and copy to GPU
     CSCMatrix tempAdjacent = readMTX(argv[1]);
-    adjacent = new CSRMatrix(tempAdjacent.rows, tempAdjacent.columns, tempAdjacent.nz);
+    adjacent = new CSRMatrix(tempAdjacent.rows, tempAdjacent.columns,
+                                tempAdjacent.nz);
     convert(tempAdjacent, adjacent);
-    cudaMemcpy(devAdjacent, adjacent, sizeof(CSRMatrix), cudaMemcpyHostToDevice);
+    copyToDev(adjacent, devAdjacent);
 
     // ~~~~~~~ calculate p1
+    // calculate e
     unitVector = new CSCMatrix(1, adjacent->columns, adjacent->columns);
     makeUnit(unitVector);
-    cudaMemcpy(devUnitVector, unitVector, sizeof(CSCMatrix), cudaMemcpyHostToDevice);
+    // allocate device memory
+    copyToDev(unitVector, devUnitVector);
     blocksPerGrid = (adjacent->rows + threadsPerBlock - 1) / threadsPerBlock;
-    sparseMatrixMult<<<blocksPerGrid, threadsPerBlock>>>(devAdjacent, devUnitVector, devp1);
-    cudaMemcpy(p1, devp1, sizeof(CSCMatrix), cudaMemcpyDeviceToHost);
+    // perform sparse matrix - vector multiplication
+    sparseMatrixMult<<<blocksPerGrid, threadsPerBlock>>>(devAdjacent,
+                                                            devUnitVector, devp1);
 
     std::cout << "#Rows/Columns: " << adjacent->rows << std::endl;
     std::cout << "#Non-zeros: " << adjacent->nz << std::endl;
 
     return 0;
+}
+
+template<typename MatrixType>
+__host__ void copyToDev(MatrixType *A, MatrixType *devA)
+{
+    size_t matrixSize = sizeof(MatrixType);
+    size_t rowSize = sizeof(int) * A->rows;
+    size_t colSize = sizeof(int) * A->columns;
+    size_t nzSize = sizeof(int) * A->nz;
+
+    cudaMalloc(&devA, matrixSize + rowSize + colSize + nzSize);
+    cudaMalloc(&devA->rowIndex, rowSize);
+    cudaMalloc(&devA->nzIndex, colSize);
+    cudaMalloc(&devA->nzValues, nzSize);
+
+    cudaMemcpy(&devA->rows, &A->rows, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(&devA->columns, &A->columns, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(&devA->nz, &A->nz, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(devA->rowIndex, A->rowIndex, rowSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(devA->nzIndex, A->nzIndex, colSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(devA->nzValues, A->nzValues, nzSize, cudaMemcpyHostToDevice);
 }
 
 __global__ void sparseMatrixMult(CSRMatrix *A, CSCMatrix *B, CSRMatrix *C)
