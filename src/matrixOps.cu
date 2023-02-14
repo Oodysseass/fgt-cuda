@@ -1,4 +1,4 @@
-#include "matrixOps.hpp"
+#include "../headers/matrixOps.hpp"
 
 void sparseMult(CSRMatrix *A, CSRMatrix *B, CSRMatrix *C)
 {
@@ -99,44 +99,44 @@ void sparseMult(CSRMatrix *A, CSRMatrix *B, CSRMatrix *C)
                                           &bufferSize2, dBuffer2))
     // get matrix C non-zero entries C_nnz1
     int64_t tempRows, tempCols, tempnz;
-    CHECK_CUSPARSE( cusparseSpMatGetSize(matC, &tempRows, &tempCols,
-                                         &tempnz) )
+    CHECK_CUSPARSE(cusparseSpMatGetSize(matC, &tempRows, &tempCols,
+                                        &tempnz))
     // allocate matrix C
-    CHECK_CUDA( cudaMalloc((void**) &devC->nzIndex, tempCols * sizeof(int))   )
-    CHECK_CUDA( cudaMalloc((void**) &devC->nzValues, tempnz * sizeof(float)) )
+    CHECK_CUDA(cudaMalloc((void **)&devC->nzIndex, tempCols * sizeof(int)))
+    CHECK_CUDA(cudaMalloc((void **)&devC->nzValues, tempnz * sizeof(float)))
 
     // update matC
-    CHECK_CUSPARSE( cusparseCsrSetPointers(matC, devC->rowIndex, devC->nzIndex,
-                                        devC->nzValues) )
+    CHECK_CUSPARSE(cusparseCsrSetPointers(matC, devC->rowIndex, devC->nzIndex,
+                                          devC->nzValues))
     // copy results
-    CHECK_CUSPARSE( cusparseSpGEMM_copy(handle, opA, opB, &alpha, matA, matB,
-    &beta, matC, CUDA_R_32I, CUSPARSE_SPGEMM_DEFAULT, spgemmDesc) )
+    CHECK_CUSPARSE(cusparseSpGEMM_copy(handle, opA, opB, &alpha, matA, matB,
+                                       &beta, matC, CUDA_R_32I, CUSPARSE_SPGEMM_DEFAULT, spgemmDesc))
 
     // destroy descriptors
-    CHECK_CUSPARSE( cusparseSpGEMM_destroyDescr(spgemmDesc) )
-    CHECK_CUSPARSE( cusparseDestroySpMat(matA) )
-    CHECK_CUSPARSE( cusparseDestroySpMat(matB) )
-    CHECK_CUSPARSE( cusparseDestroySpMat(matC) )
-    CHECK_CUSPARSE( cusparseDestroy(handle) )
+    CHECK_CUSPARSE(cusparseSpGEMM_destroyDescr(spgemmDesc))
+    CHECK_CUSPARSE(cusparseDestroySpMat(matA))
+    CHECK_CUSPARSE(cusparseDestroySpMat(matB))
+    CHECK_CUSPARSE(cusparseDestroySpMat(matC))
+    CHECK_CUSPARSE(cusparseDestroy(handle))
 
     // copy to host
     C = new CSRMatrix(tempRows, tempCols, tempnz);
-    CHECK_CUDA( cudaMemcpy(C->rowIndex, devC->rowIndex, C->rows * sizeof(int),
-    cudaMemcpyDeviceToHost) )
-    CHECK_CUDA( cudaMemcpy(C->nzIndex, devC->nzIndex, C->nz * sizeof(int),
-    cudaMemcpyDeviceToHost) )
-    CHECK_CUDA( cudaMemcpy(C->nzValues, devC->nzValues, C->nz * sizeof(int),
-    cudaMemcpyDeviceToHost) )
+    CHECK_CUDA(cudaMemcpy(C->rowIndex, devC->rowIndex, C->rows * sizeof(int),
+                          cudaMemcpyDeviceToHost))
+    CHECK_CUDA(cudaMemcpy(C->nzIndex, devC->nzIndex, C->nz * sizeof(int),
+                          cudaMemcpyDeviceToHost))
+    CHECK_CUDA(cudaMemcpy(C->nzValues, devC->nzValues, C->nz * sizeof(int),
+                          cudaMemcpyDeviceToHost))
 
-    CHECK_CUDA( cudaFree(dBuffer1) )
-    CHECK_CUDA( cudaFree(dBuffer2) )
-    CHECK_CUDA( cudaFree(devA->rowIndex) )
-    CHECK_CUDA( cudaFree(devA->nzIndex) )
-    CHECK_CUDA( cudaFree(devA->nzValues) )
-    CHECK_CUDA( cudaFree(devB->rowIndex) )
-    CHECK_CUDA( cudaFree(devB->rowIndex) )
-    CHECK_CUDA( cudaFree(devB->nzIndex) )
-    CHECK_CUDA( cudaFree(devC->nzValues) )
-    CHECK_CUDA( cudaFree(devC->nzIndex) )
-    CHECK_CUDA( cudaFree(devC->nzValues) )
+    CHECK_CUDA(cudaFree(dBuffer1))
+    CHECK_CUDA(cudaFree(dBuffer2))
+    CHECK_CUDA(cudaFree(devA->rowIndex))
+    CHECK_CUDA(cudaFree(devA->nzIndex))
+    CHECK_CUDA(cudaFree(devA->nzValues))
+    CHECK_CUDA(cudaFree(devB->rowIndex))
+    CHECK_CUDA(cudaFree(devB->rowIndex))
+    CHECK_CUDA(cudaFree(devB->nzIndex))
+    CHECK_CUDA(cudaFree(devC->nzValues))
+    CHECK_CUDA(cudaFree(devC->nzIndex))
+    CHECK_CUDA(cudaFree(devC->nzValues))
 }
