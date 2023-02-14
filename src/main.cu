@@ -2,7 +2,7 @@
 #include "../headers/mtx.hpp"
 #include "../headers/matrixOps.hpp"
 
-__host__ void makeUnit(CSCMatrix *A);
+__host__ void makeUnit(CSRMatrix *A);
 
 int main(int argc, char* argv[])
 {
@@ -14,13 +14,17 @@ int main(int argc, char* argv[])
 
     // ~~~~~~~ variable declaration and memory allocation
     CSRMatrix *adjacent, *p1;
-    CSCMatrix *unitVector;
 
-    // get adjacent matrix and copy to GPU
+    // get adjacent matrix
     CSCMatrix tempAdjacent = readMTX(argv[1]);
     adjacent = new CSRMatrix(tempAdjacent.rows, tempAdjacent.columns,
                                 tempAdjacent.nz);
     convert(tempAdjacent, adjacent);
+
+    // make vector e to calculate p1
+    CSRMatrix *unitVector = new CSRMatrix(adjacent->columns, 1, adjacent->columns);
+    makeUnit(unitVector);
+    sparseMult(adjacent, unitVector, p1);
 
     std::cout << "#Rows/Columns: " << adjacent->rows << std::endl;
     std::cout << "#Non-zeros: " << adjacent->nz << std::endl;
@@ -28,14 +32,14 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-__host__ void makeUnit(CSCMatrix *A)
+__host__ void makeUnit(CSRMatrix *A)
 {
-    A->colIndex[0] = 0;
-    A->colIndex[1] = A->nz;
+    for (int i = 0; i < A->rows; i++)
+        A->rowIndex[i + 1] = A->rowIndex[i] + 1;
 
     for (int i = 0; i < A->nz; i++)
     {
-        A->nzIndex[i] = i;
+        A->nzIndex[i] = 0;
         A->nzValues[i] = 1;
     }
 }
