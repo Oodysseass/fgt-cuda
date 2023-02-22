@@ -51,4 +51,12 @@ __global__ void calcdZero(int *e, int N);
 */
 __global__ void calcdOne(CSRMatrix *A, int *p1);
 
+/**
+ * Calculates d2 frequency
+ *
+ * @param A pointer of adjacent matrix in CSR format
+ * @param p2 pointer to array representing d2
+*/
+__global__ void calcdTwo(CSRMatrix *A, int *p2);
+
 #endif
