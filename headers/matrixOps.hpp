@@ -57,6 +57,6 @@ __global__ void calcdOne(CSRMatrix *A, int *p1);
  * @param A pointer of adjacent matrix in CSR format
  * @param p2 pointer to array representing d2
 */
-__global__ void calcdTwo(CSRMatrix *A, int *p2);
+__global__ void calcdTwo(CSRMatrix *A, int *p1, int *p2);
 
 #endif
