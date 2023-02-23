@@ -22,37 +22,13 @@ int main(int argc, char* argv[])
     std::cout << "#Rows/Columns: " << adjacent->rows << std::endl;
     std::cout << "#Non-zeros: " << adjacent->nz << std::endl;
 
+    std::cout << "Allocate freq" << std::endl;
     // allocate memory for frequencies table
     int **freq = new int*[5];
     for (int i = 0; i < 5; i++)
         freq[i] = new int[adjacent->rows];
 
-    // allocate device memory
-    CSRMatrix *devAdjacent;
-    int **devFreq;
-
-    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->rowIndex,
-                          (adjacent->rows + 1) * sizeof(int)))
-    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->nzIndex,
-                          (adjacent->nz) * sizeof(int)))
-    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->nzValues,
-                          (adjacent->nz) * sizeof(int)))
-
-    CHECK_CUDA(cudaMalloc((void **)&devFreq, 5 * sizeof(int*)))
-    for (int i = 0; i < 5; i++)
-        CHECK_CUDA(cudaMalloc((void **)&devFreq[i],
-                              (adjacent->rows) * sizeof(int)))
-
-    // copy to device
-    CHECK_CUDA(cudaMemcpy(devAdjacent->rowIndex, adjacent->rowIndex,
-                          (adjacent->rows + 1) * sizeof(int),
-                          cudaMemcpyHostToDevice))
-    CHECK_CUDA(cudaMemcpy(devAdjacent->nzIndex, adjacent->nzIndex,
-                          (adjacent->nz) * sizeof(int),
-                          cudaMemcpyHostToDevice))
-    CHECK_CUDA(cudaMemcpy(devAdjacent->nzValues, adjacent->nzValues,
-                          (adjacent->nz) * sizeof(int),
-                          cudaMemcpyHostToDevice))
+    compute(adjacent, freq);
 
     // deallocate host memory
     delete[] adjacent->rowIndex;
@@ -62,15 +38,6 @@ int main(int argc, char* argv[])
     for (int i = 0; i < 5; i++)
         delete[] freq[i];
     delete[] freq;
-
-    // deallocate device memory
-    CHECK_CUDA(cudaFree(devAdjacent->rowIndex))
-    CHECK_CUDA(cudaFree(devAdjacent->nzIndex))
-    CHECK_CUDA(cudaFree(devAdjacent->nzValues))
-
-    for (int i = 0; i < 5; i++)
-        CHECK_CUDA(cudaFree(devFreq[i]))
-    CHECK_CUDA(cudaFree(devFreq))
 
     return 0;
 }
