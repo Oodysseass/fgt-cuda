@@ -15,17 +15,6 @@
         }                                                              \
     }
 
-#define CHECK_CUSPARSE(func)                                               \
-    {                                                                      \
-        cusparseStatus_t status = (func);                                  \
-        if (status != CUSPARSE_STATUS_SUCCESS)                             \
-        {                                                                  \
-            printf("CUSPARSE API failed at line %d with error: %s (%d)\n", \
-                   __LINE__, cusparseGetErrorString(status), status);      \
-            exit(1);                                                       \
-        }                                                                  \
-    }
-
 /**
  * Calculates d0 frequency
  *
@@ -49,6 +38,14 @@ __global__ void calcdOne(CSRMatrix *A, int *p1);
  * @param p2 pointer to array representing d2
  */
 __global__ void calcdTwo(CSRMatrix *A, int *p1, int *p2);
+
+/**
+ * Calculates c3 = A .* A ^ 2
+ *
+ * @param A  pointer matrix in CSR format
+ * @param c3 pointer to result of multiplication
+ */
+__global__ void calcCThree(CSRMatrix *A, CSRMatrix *c3);
 
 /**
  * Computes d0-d4 frequencies for a graph
