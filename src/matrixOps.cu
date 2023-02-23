@@ -29,6 +29,14 @@ __global__ void calcdTwo(CSRMatrix *A, int *p1, int *p2)
     }
 }
 
+__global__ void calcdThree(CSRMatrix *A, int *p1, int *d3)
+{
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (i < A->rows)
+        d3[i] = p1[i] * (p1[i] - 1) / 2;
+}
+
 __global__ void calcCThree(CSRMatrix *A, CSRMatrix *c3)
 {
 

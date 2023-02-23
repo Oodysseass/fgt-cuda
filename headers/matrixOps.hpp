@@ -40,6 +40,15 @@ __global__ void calcdOne(CSRMatrix *A, int *p1);
 __global__ void calcdTwo(CSRMatrix *A, int *p1, int *p2);
 
 /**
+ * Calculates d3 frequency
+ *
+ * @param A  pointer of adjacent matrix in CSR format
+ * @param p1 pointer to frequency d1 needed for calculation
+ * @param d3 pointer to array representing d3
+ */
+__global__ void calcdThree(CSRMatrix *A, int *p1, int *d3);
+
+/**
  * Calculates c3 = A .* A ^ 2
  *
  * @param A  pointer matrix in CSR format
