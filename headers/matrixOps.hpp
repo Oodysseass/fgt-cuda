@@ -27,15 +27,6 @@
 }
 
 /**
- * Calculates A * B multiplication
- *
- * @param A pointer for left matrix in CSR format
- * @param B pointer for right matrix in CSR format
- * @param C pointer for product of multiplication
-*/
-void sparseMult(CSRMatrix *A, CSRMatrix *B, CSRMatrix *C);
-
-/**
  * Calculates d0 frequency
  *
  * @param e pointer to array representing d0

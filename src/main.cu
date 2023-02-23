@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
     }
 
     // ~~~~~~~ variable declaration and memory allocation
-    CSRMatrix *adjacent, *p1;
+    CSRMatrix *adjacent;
 
     // get adjacent matrix
     CSCMatrix tempAdjacent = readMTX(argv[1]);
