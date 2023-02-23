@@ -29,6 +29,11 @@ __global__ void calcdTwo(CSRMatrix *A, int *p1, int *p2)
     }
 }
 
+__global__ void calcCThree(CSRMatrix *A, CSRMatrix *c3)
+{
+
+}
+
 __host__ void compute(CSRMatrix *adjacent, int **freq)
 {
     // allocate device memory
@@ -36,12 +41,13 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     int **devFreq;
 
     std::cout << "Allocate devAdjacent" << std::endl;
-    CHECK_CUDA(cudaMalloc(&devAdjacent, sizeof(CSRMatrix)))
-    CHECK_CUDA(cudaMalloc(&devAdjacent->rowIndex,
+    CHECK_CUDA(cudaMalloc((void **)&devAdjacent, sizeof(CSRMatrix)))
+    std::cout << "Allocate devAdjacent" << std::endl;
+    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->rowIndex,
                           (adjacent->rows + 1) * sizeof(int)))
-    CHECK_CUDA(cudaMalloc(&devAdjacent->nzIndex,
+    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->nzIndex,
                           (adjacent->nz) * sizeof(int)))
-    CHECK_CUDA(cudaMalloc(&devAdjacent->nzValues,
+    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->nzValues,
                           (adjacent->nz) * sizeof(int)))
 
     std::cout << "Allocate devFreq" << std::endl;
@@ -67,6 +73,7 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     CHECK_CUDA(cudaFree(devAdjacent->rowIndex))
     CHECK_CUDA(cudaFree(devAdjacent->nzIndex))
     CHECK_CUDA(cudaFree(devAdjacent->nzValues))
+    CHECK_CUDA(cudaFree(devAdjacent))
 
     for (int i = 0; i < 5; i++)
         CHECK_CUDA(cudaFree(devFreq[i]))
