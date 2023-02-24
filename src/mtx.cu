@@ -5,9 +5,9 @@ CSRMatrix::CSRMatrix(int rows, int columns, int nz)
     this->rows = rows;
     this->columns = columns;
     this->nz = nz;
-    rowIndex = new int[rows + 1];
-    nzIndex = new int[nz];
-    nzValues = new int[nz];
+    rowIndex = new int[rows + 1]();
+    nzIndex = new int[nz]();
+    nzValues = new int[nz]();
 }
 
 CSCMatrix::CSCMatrix(int columns, int rows, int nz)
@@ -15,9 +15,9 @@ CSCMatrix::CSCMatrix(int columns, int rows, int nz)
     this->columns = columns;
     this->rows = rows;
     this->nz = nz;
-    colIndex = new int[columns + 1];
-    nzIndex = new int[nz];
-    nzValues = new int[nz];
+    colIndex = new int[columns + 1]();
+    nzIndex = new int[nz]();
+    nzValues = new int[nz]();
 }
 
 CSCMatrix readMTX(std::string filename)
@@ -146,7 +146,6 @@ CSCMatrix readMTX(std::string filename)
     // deallocate
     free(rowcoo);
     free(colcoo);
-
     return cscAdj;
 }
 
