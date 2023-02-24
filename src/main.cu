@@ -2,6 +2,18 @@
 #include "../headers/mtx.hpp"
 #include "../headers/matrixOps.hpp"
 
+void rawToNet(int **nf, int **f, int N)
+{
+    for (int i = 0; i < N; i++)
+    {
+        nf[0][i] = f[0][i];
+        nf[1][i] = f[1][i];
+        nf[2][i] = f[2][i] - 2 * f[4][i];
+        nf[3][i] = f[3][i] - f[4][i];
+        nf[4][i] = f[4][i];
+    }
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -27,7 +39,22 @@ int main(int argc, char* argv[])
     for (int i = 0; i < 5; i++)
         freq[i] = new int[adjacent->rows];
 
+    // calculate
     compute(adjacent, freq);
+
+    // final net results
+    int **nfreq = new int*[5];
+    for (int i = 0; i < 5; i++)
+        nfreq[i] = new int[adjacent->rows];
+
+    rawToNet(nfreq, freq, adjacent->rows);
+
+    for (int i = 0; i < 5; i++)
+    {
+        for (int j = 0; j < adjacent->rows; j++)
+            std::cout << nfreq[i][j] << " ";
+        std::cout << std::endl;
+    }
 
     // deallocate host memory
     delete[] adjacent->rowIndex;
@@ -37,6 +64,10 @@ int main(int argc, char* argv[])
     for (int i = 0; i < 5; i++)
         delete[] freq[i];
     delete[] freq;
+
+    for (int i = 0; i < 5; i++)
+        delete[] nfreq[i];
+    delete[] nfreq;
 
     return 0;
 }
