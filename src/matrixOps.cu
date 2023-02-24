@@ -32,17 +32,26 @@ __global__ void dFour(int *rows, int *cols, int *d4, int N)
     if (i < N)
     {
         // for each non-zero element in A(i, cols[j])
+        // calculate the corresponding element in A^2
         for (int j = rows[i]; j < rows[i + 1]; j++)
         {
             int col = cols[j];
-
-            // calculate the corresponding element in A^2
+            
+            // take advantage of symmetry to use 2 rows
+            // instead of row-column
+            // to immitate mutiplication
             for (int k = rows[col]; k < rows[col + 1]; k++)
             {
                 for (int l = rows[i]; l < rows[i + 1]; l++)
                 {
+                    // the two rows do not share an element 
+                    // in this column for sure
                     if(cols[k] < cols[l]) break;
-                    else if (cols[k] == cols[l])
+
+                    // all elements are equal to 1
+                    // every time there is match in corresponding columns
+                    // is a succesful addition to the multiplication
+                    if (cols[k] == cols[l])
                     {
                         d4[i]++;
                         break;
