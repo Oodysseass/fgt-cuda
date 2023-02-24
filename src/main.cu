@@ -22,7 +22,6 @@ int main(int argc, char* argv[])
     std::cout << "#Rows/Columns: " << adjacent->rows << std::endl;
     std::cout << "#Non-zeros: " << adjacent->nz << std::endl;
 
-    std::cout << "Allocate freq" << std::endl;
     // allocate memory for frequencies table
     int **freq = new int*[5];
     for (int i = 0; i < 5; i++)

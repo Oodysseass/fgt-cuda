@@ -26,27 +26,31 @@ __global__ void calcdZero(int *e, int N);
 /**
  * Calculates d1 frequency
  *
- * @param A  pointer of adjacent matrix in CSR format
- * @param p1 pointer to array representing d1
+ * @param rows rows pointer of adjacent matrix in CSR format
+ * @param p1   pointer to array representing d1
+ * @param N    number of vertices
  */
-__global__ void calcdOne(CSRMatrix *A, int *p1);
+__global__ void calcdOne(int *rows, int N, int *p1);
 
 /**
  * Calculates d2 frequency
  *
- * @param A  pointer of adjacent matrix in CSR format
- * @param p2 pointer to array representing d2
+ * @param rows rows pointer of adjacent matrix in CSR format
+ * @param rows columns pointer of adjacent matrix in CSR format
+ * @param p1   pointer to array representing p1 needed for calculation
+ * @param p2   pointer to array representing d2
+ * @param N    number of vertices
  */
-__global__ void calcdTwo(CSRMatrix *A, int *p1, int *p2);
+__global__ void calcdTwo(int *rows, int *cols, int N, int *p1, int *p2);
 
 /**
  * Calculates d3 frequency
  *
- * @param A  pointer of adjacent matrix in CSR format
  * @param p1 pointer to frequency d1 needed for calculation
  * @param d3 pointer to array representing d3
+ * @param N  number of vertices
  */
-__global__ void calcdThree(CSRMatrix *A, int *p1, int *d3);
+__global__ void calcdThree(int *p1, int *d3, int N);
 
 /**
  * Calculates c3 = A .* A ^ 2
