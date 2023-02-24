@@ -8,32 +8,32 @@ __global__ void calcdZero(int *e, int N)
         e[i] = 1;
 }
 
-__global__ void calcdOne(CSRMatrix *A, int *p1)
+__global__ void calcdOne(int *rows, int *p1, int N)
 {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
 
-    if (i < A->rows)
-        p1[i] = A->rowIndex[i + 1] - A->rowIndex[i];
+    if (i < N)
+        p1[i] = rows[i + 1] - rows[i];
 }
 
-__global__ void calcdTwo(CSRMatrix *A, int *p1, int *p2)
+__global__ void calcdTwo(int *rows, int *cols, int *p1, int *p2, int N)
 {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
 
-    if (i < A->rows)
+    if (i < N)
     {
-        for (int j = A->rowIndex[i]; j < A->rowIndex[i + 1]; j++)
-            p2[i] += p1[A->nzIndex[j]];
+        for (int j = rows[i]; j < rows[i + 1]; j++)
+            p2[i] += p1[cols[j]];
 
         p2[i] -= p1[i];
     }
 }
 
-__global__ void calcdThree(CSRMatrix *A, int *p1, int *d3)
+__global__ void calcdThree(int *p1, int *d3, int N)
 {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
 
-    if (i < A->rows)
+    if (i < N)
         d3[i] = p1[i] * (p1[i] - 1) / 2;
 }
 
@@ -44,47 +44,48 @@ __global__ void calcCThree(CSRMatrix *A, CSRMatrix *c3)
 
 __host__ void compute(CSRMatrix *adjacent, int **freq)
 {
-    // allocate device memory
-    CSRMatrix *devAdjacent;
-    int **devFreq;
+    // declare variable
+    int *devRowIndex, *devNzIndex, *devNzValues;
+    int *devf0, *devf1, *devf2, *devf3, *devf4;
+    int threadsPerBlock, blocksPerGrid;
 
-    std::cout << "Allocate devAdjacent" << std::endl;
-    CHECK_CUDA(cudaMalloc((void **)&devAdjacent, sizeof(CSRMatrix)))
-    std::cout << "Allocate devAdjacent" << std::endl;
-    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->rowIndex,
+    // allocate adjacent to device
+    CHECK_CUDA(cudaMalloc((void **)&devRowIndex,
                           (adjacent->rows + 1) * sizeof(int)))
-    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->nzIndex,
+    CHECK_CUDA(cudaMalloc((void **)&devNzIndex,
                           (adjacent->nz) * sizeof(int)))
-    CHECK_CUDA(cudaMalloc((void **)&devAdjacent->nzValues,
+    CHECK_CUDA(cudaMalloc((void **)&devNzValues,
                           (adjacent->nz) * sizeof(int)))
 
-    std::cout << "Allocate devFreq" << std::endl;
-    CHECK_CUDA(cudaMalloc((void **)&devFreq, 5 * sizeof(int *)))
-    for (int i = 0; i < 5; i++)
-        CHECK_CUDA(cudaMalloc((void **)&devFreq[i],
-                              (adjacent->rows) * sizeof(int)))
-
-    std::cout << "Copy adjacent" << std::endl;
     // copy to device
-    CHECK_CUDA(cudaMemcpy(devAdjacent->rowIndex, adjacent->rowIndex,
+    CHECK_CUDA(cudaMemcpy(devRowIndex, adjacent->rowIndex,
                           (adjacent->rows + 1) * sizeof(int),
                           cudaMemcpyHostToDevice))
-    CHECK_CUDA(cudaMemcpy(devAdjacent->nzIndex, adjacent->nzIndex,
+    CHECK_CUDA(cudaMemcpy(devNzIndex, adjacent->nzIndex,
                           (adjacent->nz) * sizeof(int),
                           cudaMemcpyHostToDevice))
-    CHECK_CUDA(cudaMemcpy(devAdjacent->nzValues, adjacent->nzValues,
+    CHECK_CUDA(cudaMemcpy(devNzValues, adjacent->nzValues,
                           (adjacent->nz) * sizeof(int),
                           cudaMemcpyHostToDevice))
 
-    std::cout << "Free device" << std::endl;
+    // allocate frequencies to device
+    CHECK_CUDA(cudaMalloc((void **)&devf0, (adjacent->rows) * sizeof(int)))
+    CHECK_CUDA(cudaMalloc((void **)&devf1, (adjacent->rows) * sizeof(int)))
+    CHECK_CUDA(cudaMalloc((void **)&devf2, (adjacent->rows) * sizeof(int)))
+    CHECK_CUDA(cudaMalloc((void **)&devf3, (adjacent->rows) * sizeof(int)))
+    CHECK_CUDA(cudaMalloc((void **)&devf4, (adjacent->rows) * sizeof(int)))
+
+    // prepare for device functions
+    threadsPerBlock = 512;
+    blocksPerGrid = (adjacent->rows + threadsPerBlock - 1) / threadsPerBlock;
+
     // deallocate device memory
-    CHECK_CUDA(cudaFree(devAdjacent->rowIndex))
-    CHECK_CUDA(cudaFree(devAdjacent->nzIndex))
-    CHECK_CUDA(cudaFree(devAdjacent->nzValues))
-    CHECK_CUDA(cudaFree(devAdjacent))
-
-    for (int i = 0; i < 5; i++)
-        CHECK_CUDA(cudaFree(devFreq[i]))
-    CHECK_CUDA(cudaFree(devFreq))
-    std::cout << "end" << std::endl;
+    CHECK_CUDA(cudaFree(devRowIndex))
+    CHECK_CUDA(cudaFree(devNzIndex))
+    CHECK_CUDA(cudaFree(devNzValues))
+    CHECK_CUDA(cudaFree(devf0))
+    CHECK_CUDA(cudaFree(devf1))
+    CHECK_CUDA(cudaFree(devf2))
+    CHECK_CUDA(cudaFree(devf3))
+    CHECK_CUDA(cudaFree(devf4))
 }
