@@ -40,10 +40,12 @@ __global__ void dTwoThree(int *rows, int *cols, int *p1, int *p2, int *d3, int N
 /**
  * Calculates c3 = A .* A ^ 2
  *
- * @param A  pointer matrix in CSR format
- * @param c3 pointer to result of multiplication
+ * @param rows rows pointer of adjacent matrix in CSR format
+ * @param cols columns pointer of adjacent matrix in CSR format
+ * @param d4   pointer to array representing d4
+ * @param N    number of vertices
  */
-__global__ void calcCThree(CSRMatrix *A, CSRMatrix *c3);
+__global__ void dFour(int *rows, int *cols, int *d4, int N);
 
 /**
  * Computes d0-d4 frequencies for a graph
