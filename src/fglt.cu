@@ -1,5 +1,21 @@
 #include "../headers/fglt.hpp"
 
+struct timeval tic(){
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv;
+}
+
+static double toc(struct timeval begin){
+  struct timeval end;
+  gettimeofday(&end, NULL);
+  double stime = ((double) (end.tv_sec - begin.tv_sec) * 1000 ) +
+    ((double) (end.tv_usec - begin.tv_usec) / 1000 );
+  stime = stime / 1000;
+  return(stime);
+}
+
+
 __global__ void rawToNet(int *f0, int *f1, int *f2, int *f3, int *f4,
                          int *nf0, int *nf1, int *nf2, int *nf3, int *nf4,
                          int N)
@@ -104,6 +120,9 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     int *devNf0, *devNf1, *devNf2, *devNf3, *devNf4;
     int threadsPerBlock, blocksPerGrid;
 
+    struct timeval overall = tic();
+    struct timeval start = tic();
+
     // allocate adjacent to device
     CHECK_CUDA(cudaMalloc((void **)&devRowIndex,
                           (adjacent->rows + 1) * sizeof(int)))
@@ -132,6 +151,10 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     CHECK_CUDA(cudaMalloc((void **)&devNf3, (adjacent->rows) * sizeof(int)))
     CHECK_CUDA(cudaMalloc((void **)&devNf4, (adjacent->rows) * sizeof(int)))
 
+    printf("Allocations and copy time: %.4f sec\n", toc(start));
+
+    start = tic();
+
     // prepare for device functions
     threadsPerBlock = 512;
     blocksPerGrid = (adjacent->rows + threadsPerBlock - 1) / threadsPerBlock;
@@ -153,6 +176,10 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     rawToNet<<<blocksPerGrid, threadsPerBlock>>>(devf0, devf1, devf2, devf3, devf4, devNf0, devNf1, devNf2,
                                                  devNf3, devNf4, adjacent->rows);
 
+    printf("Calculation time: %.4f sec\n", toc(start));
+
+    start = tic();
+
     // copy results to host
     CHECK_CUDA(cudaMemcpy(freq[0], devNf0, adjacent->rows * sizeof(int), cudaMemcpyDeviceToHost));
     CHECK_CUDA(cudaMemcpy(freq[1], devNf1, adjacent->rows * sizeof(int), cudaMemcpyDeviceToHost));
@@ -173,4 +200,7 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     CHECK_CUDA(cudaFree(devNf2))
     CHECK_CUDA(cudaFree(devNf3))
     CHECK_CUDA(cudaFree(devNf4))
+
+    printf("Copy and free time: %.4f sec\n", toc(start));
+    printf("Total time elapsed: %.4f sec\n", toc(overall));
 }
