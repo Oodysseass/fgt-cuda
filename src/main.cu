@@ -1,22 +1,6 @@
 #include <iostream>
-#include <sys/time.h>
 #include "../headers/mtx.hpp"
 #include "../headers/fglt.hpp"
-
-struct timeval tic(){
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv;
-}
-
-static double toc(struct timeval begin){
-  struct timeval end;
-  gettimeofday(&end, NULL);
-  double stime = ((double) (end.tv_sec - begin.tv_sec) * 1000 ) +
-    ((double) (end.tv_usec - begin.tv_usec) / 1000 );
-  stime = stime / 1000;
-  return(stime);
-}
 
 int main(int argc, char* argv[])
 {
@@ -45,12 +29,8 @@ int main(int argc, char* argv[])
         nfreq[i] = new int[adjacent->rows];
 
 
-    struct timeval start = tic();
-
     // calculate
     compute(adjacent, nfreq);
-
-    printf("Total elapsed time: %.4f sec\n", toc(start));
 
     for (int i = 0; i < 5; i++)
     {
