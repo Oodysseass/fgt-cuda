@@ -22,64 +22,77 @@ __global__ void rawToNet(int *f0, int *f1, int *f2, int *f3, int *f4,
 
 __global__ void dZeroOne(int *rows, int *e, int *p1, int N)
 {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
 
-    if (i < N)
+    for (int i = index; i < N; i += stride)
     {
-        e[i] = 1;
-        p1[i] = rows[i + 1] - rows[i];
+        if (i < N)
+        {
+            e[i] = 1;
+            p1[i] = rows[i + 1] - rows[i];
+        }
     }
 }
 
 __global__ void dTwoThree(int *rows, int *cols, int *p1, int *p2, int *d3, int N)
 {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
 
-    if (i < N)
+    for (int i = index; i < N; i += stride)
     {
-        d3[i] = p1[i] * (p1[i] - 1) / 2;
-        for (int j = rows[i]; j < rows[i + 1]; j++)
-            p2[i] += p1[cols[j]];
+        if (i < N)
+        {
+            d3[i] = p1[i] * (p1[i] - 1) / 2;
+            for (int j = rows[i]; j < rows[i + 1]; j++)
+                p2[i] += p1[cols[j]];
 
-        p2[i] -= p1[i];
+            p2[i] -= p1[i];
+        }
     }
 }
 
 __global__ void dFour(int *rows, int *cols, int *d4, int N)
 {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
 
-    if (i < N)
+    for (int i = index; i < N; i += stride)
     {
-        // for each non-zero element in A(i, cols[j])
-        // calculate the corresponding element in A^2
-        for (int j = rows[i]; j < rows[i + 1]; j++)
+        if (i < N)
         {
-            int col = cols[j];
-            
-            // take advantage of symmetry to use 2 rows
-            // instead of row-column
-            // to immitate mutiplication
-            for (int k = rows[col]; k < rows[col + 1]; k++)
+            // for each non-zero element in A(i, cols[j])
+            // calculate the corresponding element in A^2
+            for (int j = rows[i]; j < rows[i + 1]; j++)
             {
-                for (int l = rows[i]; l < rows[i + 1]; l++)
-                {
-                    // the two rows do not share an element 
-                    // in this column for sure
-                    if(cols[k] < cols[l]) break;
+                int col = cols[j];
 
-                    // all elements are equal to 1
-                    // every time there is match in corresponding columns
-                    // is a succesful addition to the multiplication
-                    if (cols[k] == cols[l])
+                // take advantage of symmetry to use 2 rows
+                // instead of row-column
+                // to immitate mutiplication
+                for (int k = rows[col]; k < rows[col + 1]; k++)
+                {
+                    for (int l = rows[i]; l < rows[i + 1]; l++)
                     {
-                        d4[i]++;
-                        break;
+                        // the two rows do not share an element
+                        // in this column for sure
+                        if (cols[k] < cols[l])
+                            break;
+
+                        // all elements are equal to 1
+                        // every time there is match in corresponding columns
+                        // is a succesful addition to the multiplication
+                        if (cols[k] == cols[l])
+                        {
+                            d4[i]++;
+                            break;
+                        }
                     }
                 }
             }
+            d4[i] /= 2;
         }
-        d4[i] /= 2;
     }
 }
 
