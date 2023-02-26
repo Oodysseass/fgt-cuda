@@ -1,6 +1,5 @@
 #include "../headers/fglt.hpp"
 
-
 __global__ void rawToNet(int *f0, int *f1, int *f2, int *f3, int *f4,
                          int *nf0, int *nf1, int *nf2, int *nf3, int *nf4,
                          int N)
@@ -15,7 +14,7 @@ __global__ void rawToNet(int *f0, int *f1, int *f2, int *f3, int *f4,
             nf0[i] = f0[i];
             nf1[i] = f1[i];
             nf2[i] = f2[i] - 2 * f4[i];
-            nf3[i] = f4[i] - f4[i];
+            nf3[i] = f3[i] - f4[i];
             nf4[i] = f4[i];
         }
     }
