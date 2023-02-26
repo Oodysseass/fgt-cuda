@@ -1,4 +1,4 @@
-#include "../headers/matrixOps.hpp"
+#include "../headers/fglt.hpp"
 
 __global__ void dZeroOne(int *rows, int *e, int *p1, int N)
 {
