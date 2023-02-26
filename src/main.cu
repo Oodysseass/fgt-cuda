@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
                                 tempAdjacent.nz);
     convert(tempAdjacent, adjacent);
 
+    std::cout << "Running FGLT for " << argv[1] << std::endl;
     std::cout << "#Rows/Columns: " << adjacent->rows << std::endl;
     std::cout << "#Non-zeros: " << adjacent->nz << std::endl;
 
