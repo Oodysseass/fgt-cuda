@@ -16,6 +16,25 @@
     }
 
 /**
+ * Transforms raw frequencies to net
+ *
+ * @param f0  pointer to f0 raw frequency
+ * @param f1  pointer to f1 raw frequency
+ * @param f2  pointer to f2 raw frequency
+ * @param f3  pointer to f3 raw frequency
+ * @param f4  pointer to f4 raw frequency
+ * @param nf0 pointer to f0 net frequency
+ * @param nf1 pointer to f1 net frequency
+ * @param nf2 pointer to f2 net frequency
+ * @param nf3 pointer to f3 net frequency
+ * @param nf4 pointer to f4 net frequency
+ * @param N   number of vertices
+ */
+__global__ void rawToNet(int *f0, int *f1, int *f2, int *f3, int *f4,
+                         int *nf0, int *nf1, int *nf2, int *nf3, int *nf4,
+                         int N);
+
+/**
  * Calculates d0 and d1 frequency
  *
  * @param rows rows pointer of adjacent matrix in CSR format
