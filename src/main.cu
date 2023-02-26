@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include "../headers/mtx.hpp"
-#include "../headers/matrixOps.hpp"
+#include "../headers/fglt.hpp"
 
 struct timeval tic(){
   struct timeval tv;

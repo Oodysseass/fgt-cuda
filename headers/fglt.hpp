@@ -1,5 +1,5 @@
-#ifndef MATRIXOPS_HPP
-#define MATRIXOPS_HPP
+#ifndef FGLT_HPP
+#define FGLT_HPP
 
 #include <cuda_runtime_api.h>
 #include "mtx.hpp"
