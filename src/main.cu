@@ -2,6 +2,28 @@
 #include "../headers/mtx.hpp"
 #include "../headers/fglt.hpp"
 
+std::ostream &output(std::ostream &outfile, int **arr, int rows, int cols)
+{
+
+    outfile
+        << "\"Node id (0-based)\","
+        << "\"[0] vertex (==1)\","
+        << "\"[1] degree\","
+        << "\"[2] 2-path\","
+        << "\"[3] bifork\","
+        << "\"[4] 3-cycle\","
+        << std::endl;
+
+    for (int i = 0; i < rows; i++)
+    {
+        outfile << i << ",";
+        for (int j = 0; j < cols - 1; j++)
+            outfile << arr[j][i] << ",";
+        outfile << arr[cols - 1][i] << std::endl;
+    }
+    return outfile;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -28,15 +50,15 @@ int main(int argc, char* argv[])
     for (int i = 0; i < 5; i++)
         nfreq[i] = new int[adjacent->rows];
 
-
     // calculate
     compute(adjacent, nfreq);
 
-    for (int i = 0; i < 5; i++)
+    // output
+    std::fstream ofnet("freq_net.csv", std::ios::out);
+
+    if (ofnet.is_open())
     {
-        for (int j = 0; j < adjacent->rows; j++)
-            std::cout << nfreq[i][j] << " ";
-        std::cout << std::endl;
+        output(ofnet, nfreq, adjacent->rows, 5);
     }
 
     // deallocate host memory
