@@ -2,7 +2,6 @@
 #define FGLT_HPP
 
 #include <cuda_runtime_api.h>
-#include <sys/time.h>
 #include "mtx.hpp"
 
 #define CHECK_CUDA(func)                                               \

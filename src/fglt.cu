@@ -1,20 +1,5 @@
 #include "../headers/fglt.hpp"
 
-struct timeval tic(){
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv;
-}
-
-static double toc(struct timeval begin){
-  struct timeval end;
-  gettimeofday(&end, NULL);
-  double stime = ((double) (end.tv_sec - begin.tv_sec) * 1000 ) +
-    ((double) (end.tv_usec - begin.tv_usec) / 1000 );
-  stime = stime / 1000;
-  return(stime);
-}
-
 
 __global__ void rawToNet(int *f0, int *f1, int *f2, int *f3, int *f4,
                          int *nf0, int *nf1, int *nf2, int *nf3, int *nf4,
@@ -114,14 +99,24 @@ __global__ void dFour(int *rows, int *cols, int *d4, int N)
 
 __host__ void compute(CSRMatrix *adjacent, int **freq)
 {
+    // cudafree nothing just for initialization
+    CHECK_CUDA(cudaFree(0))
+
     // declare variable
     int *devRowIndex, *devNzIndex;
     int *devf0, *devf1, *devf2, *devf3, *devf4;
     int *devNf0, *devNf1, *devNf2, *devNf3, *devNf4;
     int threadsPerBlock, blocksPerGrid;
+    float ms = 0;
+    cudaEvent_t start, stop, overallStart, overallStop;
 
-    struct timeval overall = tic();
-    struct timeval start = tic();
+    CHECK_CUDA(cudaEventCreate(&start))
+    CHECK_CUDA(cudaEventCreate(&stop))
+    CHECK_CUDA(cudaEventCreate(&overallStart))
+    CHECK_CUDA(cudaEventCreate(&overallStop))
+
+    CHECK_CUDA(cudaEventRecord(overallStart))
+    CHECK_CUDA(cudaEventRecord(start))
 
     // allocate adjacent to device
     CHECK_CUDA(cudaMalloc((void **)&devRowIndex,
@@ -151,13 +146,16 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     CHECK_CUDA(cudaMalloc((void **)&devNf3, (adjacent->rows) * sizeof(int)))
     CHECK_CUDA(cudaMalloc((void **)&devNf4, (adjacent->rows) * sizeof(int)))
 
-    printf("Allocations and copy time: %.4f sec\n", toc(start));
-
-    start = tic();
+    CHECK_CUDA(cudaEventRecord(stop))
+    CHECK_CUDA(cudaEventSynchronize(stop))
+    CHECK_CUDA(cudaEventElapsedTime(&ms, start, stop))
+    printf("Allocations and copy time: %f sec\n", ms);
 
     // prepare for device functions
     threadsPerBlock = 512;
     blocksPerGrid = (adjacent->rows + threadsPerBlock - 1) / threadsPerBlock;
+
+    CHECK_CUDA(cudaEventRecord(start))
 
     // d0, d1
     std::cout << "Calculate d0, d1" << std::endl;
@@ -176,9 +174,13 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     rawToNet<<<blocksPerGrid, threadsPerBlock>>>(devf0, devf1, devf2, devf3, devf4, devNf0, devNf1, devNf2,
                                                  devNf3, devNf4, adjacent->rows);
 
-    printf("Calculation time: %.4f sec\n", toc(start));
+    CHECK_CUDA(cudaEventRecord(stop))
+    CHECK_CUDA(cudaEventSynchronize(stop))
+    CHECK_CUDA(cudaEventElapsedTime(&ms, start, stop))
+    printf("Calculation time: %f sec\n", ms);
 
-    start = tic();
+
+    CHECK_CUDA(cudaEventRecord(start))
 
     // copy results to host
     CHECK_CUDA(cudaMemcpy(freq[0], devNf0, adjacent->rows * sizeof(int), cudaMemcpyDeviceToHost));
@@ -201,6 +203,19 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     CHECK_CUDA(cudaFree(devNf3))
     CHECK_CUDA(cudaFree(devNf4))
 
-    printf("Copy and free time: %.4f sec\n", toc(start));
-    printf("Total time elapsed: %.4f sec\n", toc(overall));
+    CHECK_CUDA(cudaEventRecord(stop))
+    CHECK_CUDA(cudaEventSynchronize(stop))
+    CHECK_CUDA(cudaEventElapsedTime(&ms, start, stop))
+    printf("Copy and free time: %.4f sec\n", ms);
+
+
+    CHECK_CUDA(cudaEventRecord(overallStop))
+    CHECK_CUDA(cudaEventSynchronize(overallStop))
+    CHECK_CUDA(cudaEventElapsedTime(&ms, overallStart, overallStop))
+    printf("Total time elapsed: %.4f sec\n", ms);
+
+    CHECK_CUDA(cudaEventDestroy(start))
+    CHECK_CUDA(cudaEventDestroy(stop))
+    CHECK_CUDA(cudaEventDestroy(overallStart))
+    CHECK_CUDA(cudaEventDestroy(overallStop))
 }
