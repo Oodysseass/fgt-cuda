@@ -137,7 +137,7 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     CHECK_CUDA(cudaEventRecord(stop))
     CHECK_CUDA(cudaEventSynchronize(stop))
     CHECK_CUDA(cudaEventElapsedTime(&ms, start, stop))
-    printf("Allocations and copy time: %f sec\n", ms);
+    printf("Allocations and copy time: %f ms\n", ms);
 
     // prepare for device functions
     threadsPerBlock = 512;
@@ -165,7 +165,7 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     CHECK_CUDA(cudaEventRecord(stop))
     CHECK_CUDA(cudaEventSynchronize(stop))
     CHECK_CUDA(cudaEventElapsedTime(&ms, start, stop))
-    printf("Calculation time: %f sec\n", ms);
+    printf("Calculation time: %f ms\n", ms);
 
 
     CHECK_CUDA(cudaEventRecord(start))
@@ -194,13 +194,13 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     CHECK_CUDA(cudaEventRecord(stop))
     CHECK_CUDA(cudaEventSynchronize(stop))
     CHECK_CUDA(cudaEventElapsedTime(&ms, start, stop))
-    printf("Copy and free time: %.4f sec\n", ms);
+    printf("Copy and free time: %f ms\n", ms);
 
 
     CHECK_CUDA(cudaEventRecord(overallStop))
     CHECK_CUDA(cudaEventSynchronize(overallStop))
     CHECK_CUDA(cudaEventElapsedTime(&ms, overallStart, overallStop))
-    printf("Total time elapsed: %.4f sec\n", ms);
+    printf("Total time elapsed: %f ms\n", ms);
 
     CHECK_CUDA(cudaEventDestroy(start))
     CHECK_CUDA(cudaEventDestroy(stop))
