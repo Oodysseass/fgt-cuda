@@ -10,14 +10,11 @@ __global__ void rawToNet(int *f0, int *f1, int *f2, int *f3, int *f4,
 
     for (int i = index; i < N; i += stride)
     {
-        if (i < N)
-        {
-            nf0[i] = f0[i];
-            nf1[i] = f1[i];
-            nf2[i] = f2[i] - 2 * f4[i];
-            nf3[i] = f3[i] - f4[i];
-            nf4[i] = f4[i];
-        }
+        nf0[i] = f0[i];
+        nf1[i] = f1[i];
+        nf2[i] = f2[i] - 2 * f4[i];
+        nf3[i] = f3[i] - f4[i];
+        nf4[i] = f4[i];
     }
 }
 
@@ -28,11 +25,8 @@ __global__ void dZeroOne(int *rows, int *e, int *p1, int N)
 
     for (int i = index; i < N; i += stride)
     {
-        if (i < N)
-        {
-            e[i] = 1;
-            p1[i] = rows[i + 1] - rows[i];
-        }
+        e[i] = 1;
+        p1[i] = rows[i + 1] - rows[i];
     }
 }
 
@@ -43,14 +37,11 @@ __global__ void dTwoThree(int *rows, int *cols, int *p1, int *p2, int *d3, int N
 
     for (int i = index; i < N; i += stride)
     {
-        if (i < N)
-        {
-            d3[i] = p1[i] * (p1[i] - 1) / 2;
-            for (int j = rows[i]; j < rows[i + 1]; j++)
-                p2[i] += p1[cols[j]];
+        d3[i] = p1[i] * (p1[i] - 1) / 2;
+        for (int j = rows[i]; j < rows[i + 1]; j++)
+            p2[i] += p1[cols[j]];
 
-            p2[i] -= p1[i];
-        }
+        p2[i] -= p1[i];
     }
 }
 
@@ -61,39 +52,36 @@ __global__ void dFour(int *rows, int *cols, int *d4, int N)
 
     for (int i = index; i < N; i += stride)
     {
-        if (i < N)
+        // for each non-zero element in A(i, cols[j])
+        // calculate the corresponding element in A^2
+        for (int j = rows[i]; j < rows[i + 1]; j++)
         {
-            // for each non-zero element in A(i, cols[j])
-            // calculate the corresponding element in A^2
-            for (int j = rows[i]; j < rows[i + 1]; j++)
+            int col = cols[j];
+
+            // take advantage of symmetry to use 2 rows
+            // instead of row-column
+            // to immitate mutiplication
+            for (int k = rows[col]; k < rows[col + 1]; k++)
             {
-                int col = cols[j];
-
-                // take advantage of symmetry to use 2 rows
-                // instead of row-column
-                // to immitate mutiplication
-                for (int k = rows[col]; k < rows[col + 1]; k++)
+                for (int l = rows[i]; l < rows[i + 1]; l++)
                 {
-                    for (int l = rows[i]; l < rows[i + 1]; l++)
-                    {
-                        // the two rows do not share an element
-                        // in this column for sure
-                        if (cols[k] < cols[l])
-                            break;
+                    // the two rows do not share an element
+                    // in this column for sure
+                    if (cols[k] < cols[l])
+                        break;
 
-                        // all elements are equal to 1
-                        // every time there is match in corresponding columns
-                        // is a succesful addition to the multiplication
-                        if (cols[k] == cols[l])
-                        {
-                            d4[i]++;
-                            break;
-                        }
+                    // all elements are equal to 1
+                    // every time there is match in corresponding columns
+                    // is a succesful addition to the multiplication
+                    if (cols[k] == cols[l])
+                    {
+                        d4[i]++;
+                        break;
                     }
                 }
             }
-            d4[i] /= 2;
         }
+        d4[i] /= 2;
     }
 }
 
