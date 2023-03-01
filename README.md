@@ -5,7 +5,7 @@ Implements <a href="https://github.com/fcdimitr/fglt">fglt</a> using CUDA.
 <ul>
   <li>NVIDIA CUDA Toolkit and nvcc compiler. Can be installed by running:
   
-    sudo apt-get install libopenmpi-dev
+    sudo apt-get install nvidia-cuda-toolkit
     
   </li>
 </ul>
