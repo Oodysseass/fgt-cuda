@@ -1,0 +1,11 @@
+Running FGLT for coPapersDBLP.mtx
+#Rows/Columns: 540486
+#Non-zeros: 30491458
+Allocations and copy time: 16.600063 ms
+Calculate d0, d1
+Calculate d2, d3
+Calculate d4
+Calculate net frequencies
+Calculation time: 205283.328125 ms
+Copy and free time: 15.804864 ms
+Total time elapsed: 205315.828125 ms

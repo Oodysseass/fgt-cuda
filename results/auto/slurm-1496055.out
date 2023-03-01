@@ -1,0 +1,11 @@
+Running FGLT for auto.mtx
+#Rows/Columns: 448695
+#Non-zeros: 6629222
+Allocations and copy time: 7.239520 sec
+Calculate d0, d1
+Calculate d2, d3
+Calculate d4
+Calculate net frequencies
+Calculation time: 83.878143 sec
+Copy and free time: 10.7996 sec
+Total time elapsed: 101.9947 sec

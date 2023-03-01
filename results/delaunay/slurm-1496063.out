@@ -1,0 +1,11 @@
+Running FGLT for delaunay_n22.mtx
+#Rows/Columns: 4194304
+#Non-zeros: 25165738
+Allocations and copy time: 16.049664 sec
+Calculate d0, d1
+Calculate d2, d3
+Calculate d4
+Calculate net frequencies
+Calculation time: 38.653824 ms
+Copy and free time: 42.608318 ms
+Total time elapsed: 97.366051 ms
