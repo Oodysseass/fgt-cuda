@@ -140,7 +140,7 @@ __host__ void compute(CSRMatrix *adjacent, int **freq)
     printf("Allocations and copy time: %f ms\n", ms);
 
     // prepare for device functions
-    threadsPerBlock = 512;
+    threadsPerBlock = 256;
     blocksPerGrid = (adjacent->rows + threadsPerBlock - 1) / threadsPerBlock;
 
     CHECK_CUDA(cudaEventRecord(start))
