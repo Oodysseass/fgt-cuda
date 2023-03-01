@@ -1,0 +1,11 @@
+Running FGLT for great-britain_osm_coord.mtx
+#Rows/Columns: 7733822
+#Non-zeros: 16313034
+Allocations and copy time: 13.817248 sec
+Calculate d0, d1
+Calculate d2, d3
+Calculate d4
+Calculate net frequencies
+Calculation time: 5.089728 sec
+Copy and free time: 69.5402 sec
+Total time elapsed: 88.5047 sec
